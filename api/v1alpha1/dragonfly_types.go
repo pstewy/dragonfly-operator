@@ -46,6 +46,11 @@ type DragonflySpec struct {
 	// +kubebuilder:validation:Optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 
+	// (Optional) Environment variables to add to the Dragonfly pods.
+	// +optional
+	// +kubebuilder:validation:Optional
+	Environment []corev1.EnvVar `json:"environment,omitempty"`
+
 	// (Optional) Dragonfly container resource limits. Any container limits
 	// can be specified.
 	// +optional
