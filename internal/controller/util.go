@@ -36,6 +36,9 @@ const (
 	PhaseResourcesUpdated string = "resources-updated"
 
 	PhaseReady string = "ready"
+
+	PasswordEnvironmentKey = "DFLY_PASSWORD"
+	PasswordArgumentKey    = "--requirepass"
 )
 
 // isPodOnLatestVersion returns if the Given pod is on the updatedRevision
@@ -97,9 +100,7 @@ func isStableState(ctx context.Context, c client.Client, pod *corev1.Pod) (bool,
 		return false, nil
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%d", pod.Status.PodIP, 6379),
-	})
+	redisClient := redisClientFromPod(pod)
 
 	_, err := redisClient.Ping().Result()
 	if err != nil {
@@ -137,4 +138,39 @@ func isStableState(ctx context.Context, c client.Client, pod *corev1.Pod) (bool,
 	}
 
 	return true, nil
+}
+
+func redisClientFromPod(pod *corev1.Pod) *redis.Client {
+	opts := &redis.Options{
+		Addr: fmt.Sprintf("%s:%d", pod.Status.PodIP, 6379),
+	}
+	if password, found := searchForPassword(pod); found {
+		opts.Password = password
+	}
+	return redis.NewClient(opts)
+}
+
+// searchForPassword will search the pod spec for the redis password.
+// The password can be set in two ways:
+// 1. The env variable PasswordEnvironmentKey
+// 2. The argument PasswordArgumentKey
+// For each container, searchForPassword will look at the environment first, then the arguments,
+// and it will return on the first match it finds.
+func searchForPassword(pod *corev1.Pod) (string, bool) {
+	for _, container := range pod.Spec.Containers {
+		for _, envVar := range container.Env {
+			if envVar.Name == PasswordEnvironmentKey {
+				return envVar.Value, true
+			}
+		}
+		for _, arg := range container.Args {
+			if strings.Contains(arg, PasswordArgumentKey) {
+				splitArgs := strings.Split(arg, "=")
+				if len(splitArgs) == 2 {
+					return splitArgs[1], true
+				}
+			}
+		}
+	}
+	return "", false
 }
