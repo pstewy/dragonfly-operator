@@ -100,6 +100,7 @@ func GetDragonflyResources(ctx context.Context, df *resourcesv1.Dragonfly) ([]cl
 							Args: []string{
 								"--alsologtostderr",
 							},
+							Env: df.Spec.Environment,
 							ReadinessProbe: &corev1.Probe{
 								ProbeHandler: corev1.ProbeHandler{
 									Exec: &corev1.ExecAction{
