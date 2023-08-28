@@ -66,6 +66,11 @@ type DragonflySpec struct {
 	// +optional
 	// +kubebuilder:validation:Optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// (Optional) Dragonfly pod service account name
+	// +optional
+	// +kubebuilder:validation:Optional
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // DragonflyStatus defines the observed state of Dragonfly

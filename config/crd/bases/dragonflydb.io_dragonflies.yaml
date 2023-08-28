@@ -1040,6 +1040,9 @@ spec:
                       to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
                     type: object
                 type: object
+              serviceAccountName:
+                description: (Optional) Dragonfly pod service account name
+                type: string
               tolerations:
                 description: (Optional) Dragonfly pod tolerations
                 items:
