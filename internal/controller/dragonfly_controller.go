@@ -232,7 +232,9 @@ func (r *DragonflyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			}
 		}
 
-		log.Info("Updated resources for object")
+		log.Info("Updated resources for object - sleeping")
+		// Sleep for a few seconds to let the resource update take place
+		time.Sleep(3 * time.Second)
 
 		// perform a rollout only if the pod spec has changed
 		var statefulSet appsv1.StatefulSet
@@ -241,6 +243,7 @@ func (r *DragonflyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			return ctrl.Result{}, err
 		}
 
+		log.Info("Comparing sts", "STSStatus", statefulSet.Status)
 		if statefulSet.Status.UpdatedReplicas != statefulSet.Status.Replicas {
 			log.Info("Pod spec has changed, performing a rollout")
 			r.EventRecorder.Event(&df, corev1.EventTypeNormal, "Rollout", "Starting a rollout")
