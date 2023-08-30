@@ -26,7 +26,6 @@ import (
 	resourcesv1 "github.com/dragonflydb/dragonfly-operator/api/v1alpha1"
 	"github.com/dragonflydb/dragonfly-operator/internal/resources"
 	"github.com/go-logr/logr"
-	"github.com/go-redis/redis"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -208,9 +207,7 @@ func (dfi *DragonflyInstance) configureReplica(ctx context.Context, pod *corev1.
 // checkReplicaRole checks if the given pod is a replica and if it is
 // connected to the right master
 func (dfi *DragonflyInstance) checkReplicaRole(ctx context.Context, pod *corev1.Pod, masterIp string) (bool, error) {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%d", pod.Status.PodIP, 6379),
-	})
+	redisClient := redisClientFromPod(pod)
 
 	resp, err := redisClient.Info("replication").Result()
 	if err != nil {
@@ -323,9 +320,7 @@ func (dfi *DragonflyInstance) getPods(ctx context.Context) (*corev1.PodList, err
 // replicaOf configures the pod as a replica
 // to the given master instance
 func (dfi *DragonflyInstance) replicaOf(ctx context.Context, pod *corev1.Pod, masterIp string) error {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:6379", pod.Status.PodIP),
-	})
+	redisClient := redisClientFromPod(pod)
 
 	dfi.log.Info("Trying to invoke SLAVE OF command", "pod", pod.Name, "master", masterIp)
 	resp, err := redisClient.SlaveOf(masterIp, "6379").Result()
@@ -350,9 +345,7 @@ func (dfi *DragonflyInstance) replicaOf(ctx context.Context, pod *corev1.Pod, ma
 // replicaOfNoOne configures the pod as a master
 // along while updating other pods to be replicas
 func (dfi *DragonflyInstance) replicaOfNoOne(ctx context.Context, pod *corev1.Pod) error {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:6379", pod.Status.PodIP),
-	})
+	redisClient := redisClientFromPod(pod)
 
 	dfi.log.Info("Running SLAVE OF NO ONE command", "pod", pod.Name)
 	resp, err := redisClient.SlaveOf("NO", "ONE").Result()
