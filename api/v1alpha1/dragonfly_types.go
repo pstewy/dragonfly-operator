@@ -46,11 +46,6 @@ type DragonflySpec struct {
 	// +kubebuilder:validation:Optional
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// (Optional) Environment variables to add to the Dragonfly pods.
-	// +optional
-	// +kubebuilder:validation:Optional
-	Environment []corev1.EnvVar `json:"environment,omitempty"`
-
 	// (Optional) Dragonfly container resource limits. Any container limits
 	// can be specified.
 	// +optional
@@ -66,11 +61,6 @@ type DragonflySpec struct {
 	// +optional
 	// +kubebuilder:validation:Optional
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
-
-	// (Optional) Dragonfly pod service account name
-	// +optional
-	// +kubebuilder:validation:Optional
-	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // DragonflyStatus defines the observed state of Dragonfly
